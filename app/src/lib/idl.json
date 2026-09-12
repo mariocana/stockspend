@@ -1,0 +1,1834 @@
+{
+  "address": "HHUNGo3PrayWbGD3sFf8upkEpAJbF5oMvVGsYBGmc2zY",
+  "metadata": {
+    "name": "stockspend",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Spend your tokenized stock portfolio without selling it"
+  },
+  "instructions": [
+    {
+      "name": "borrow",
+      "docs": [
+        "Borrow USDC from the treasury against the position's collateral."
+      ],
+      "discriminator": [
+        228,
+        253,
+        131,
+        202,
+        207,
+        116,
+        89,
+        18
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "owner_usdc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.stock_mint",
+                "account": "Market"
+              }
+            ]
+          },
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "Pyth price update for the market's feed. Required unless the market is mock-priced."
+          ],
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_market",
+      "discriminator": [
+        103,
+        226,
+        97,
+        235,
+        200,
+        188,
+        251,
+        254
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stock_mint"
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "market"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "feed_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "max_price_age_secs",
+          "type": "u64"
+        },
+        {
+          "name": "initial_price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "deposit",
+      "docs": [
+        "Deposit stock tokens as collateral."
+      ],
+      "discriminator": [
+        242,
+        35,
+        198,
+        137,
+        82,
+        225,
+        242,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stock_mint",
+          "relations": [
+            "market"
+          ]
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "market"
+          ]
+        },
+        {
+          "name": "owner_stock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "fund_treasury",
+      "discriminator": [
+        71,
+        154,
+        45,
+        220,
+        206,
+        32,
+        174,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "funder",
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "funder_usdc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "funder"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "docs": [
+        "One-time setup: global config + USDC treasury owned by the config PDA."
+      ],
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint"
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "config"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ltv_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "mint_mock",
+      "discriminator": [
+        198,
+        117,
+        233,
+        49,
+        122,
+        89,
+        80,
+        46
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "destination",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "repay",
+      "docs": [
+        "Repay USDC debt. Amounts above the outstanding debt are capped."
+      ],
+      "discriminator": [
+        234,
+        103,
+        67,
+        82,
+        208,
+        234,
+        219,
+        166
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "usdc_mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "owner_usdc",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.stock_mint",
+                "account": "Market"
+              }
+            ]
+          },
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "update_price",
+      "discriminator": [
+        61,
+        34,
+        117,
+        155,
+        75,
+        34,
+        123,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.stock_mint",
+                "account": "Market"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw",
+      "docs": [
+        "Withdraw collateral, as long as the remaining position stays within LTV."
+      ],
+      "discriminator": [
+        183,
+        18,
+        70,
+        156,
+        148,
+        109,
+        161,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "owner",
+          "signer": true,
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "stock_mint",
+          "relations": [
+            "market"
+          ]
+        },
+        {
+          "name": "market",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ]
+          },
+          "relations": [
+            "position"
+          ]
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "relations": [
+            "market"
+          ]
+        },
+        {
+          "name": "owner_stock",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "stock_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "position",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  115,
+                  105,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "owner"
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_update",
+          "docs": [
+            "Pyth price update for the market's feed. Required unless the market is mock-priced."
+          ],
+          "optional": true
+        },
+        {
+          "name": "token_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "Market",
+      "discriminator": [
+        219,
+        190,
+        213,
+        55,
+        0,
+        227,
+        198,
+        154
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "PriceUpdateV2",
+      "discriminator": [
+        34,
+        241,
+        35,
+        99,
+        157,
+        126,
+        244,
+        205
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "Borrowed",
+      "discriminator": [
+        225,
+        182,
+        241,
+        78,
+        34,
+        145,
+        253,
+        230
+      ]
+    },
+    {
+      "name": "Deposited",
+      "discriminator": [
+        111,
+        141,
+        26,
+        45,
+        161,
+        35,
+        100,
+        57
+      ]
+    },
+    {
+      "name": "Repaid",
+      "discriminator": [
+        38,
+        248,
+        231,
+        7,
+        150,
+        164,
+        172,
+        23
+      ]
+    },
+    {
+      "name": "Withdrawn",
+      "discriminator": [
+        20,
+        89,
+        223,
+        198,
+        194,
+        124,
+        219,
+        13
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidLtv",
+      "msg": "LTV must be between 1 and 9999 bps"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidPrice",
+      "msg": "Price must be greater than zero"
+    },
+    {
+      "code": 6002,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6003,
+      "name": "InsufficientCollateral",
+      "msg": "Not enough collateral in position"
+    },
+    {
+      "code": 6004,
+      "name": "ExceedsLtv",
+      "msg": "Position would exceed the maximum loan-to-value"
+    },
+    {
+      "code": 6005,
+      "name": "InsufficientLiquidity",
+      "msg": "Treasury does not have enough USDC"
+    },
+    {
+      "code": 6006,
+      "name": "NoDebt",
+      "msg": "Position has no outstanding debt"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidPriceAge",
+      "msg": "Max price age must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "NotMockMarket",
+      "msg": "This market is priced by Pyth, not the mock oracle"
+    },
+    {
+      "code": 6009,
+      "name": "MissingPriceUpdate",
+      "msg": "A Pyth price update account is required for this market"
+    },
+    {
+      "code": 6010,
+      "name": "WrongPriceFeed",
+      "msg": "Price update is for a different feed"
+    },
+    {
+      "code": 6011,
+      "name": "UnverifiedPrice",
+      "msg": "Price update is not fully verified"
+    },
+    {
+      "code": 6012,
+      "name": "FaucetCapExceeded",
+      "msg": "Faucet amount exceeds the per-call cap"
+    },
+    {
+      "code": 6013,
+      "name": "StalePrice",
+      "msg": "Oracle price is stale"
+    },
+    {
+      "code": 6014,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Borrowed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "debt",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "usdc_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "ltv_bps",
+            "type": "u16"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Deposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Market",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "stock_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "feed_id",
+            "docs": [
+              "Pyth price feed id, or MOCK_FEED_ID for admin-priced markets."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "max_price_age_secs",
+            "docs": [
+              "Reject prices (Pyth or mock) older than this."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          },
+          {
+            "name": "price",
+            "docs": [
+              "Mock price only (USD * 10^6 per whole share)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "price_updated_at",
+            "type": "i64"
+          },
+          {
+            "name": "total_collateral",
+            "type": "u64"
+          },
+          {
+            "name": "total_debt",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "collateral",
+            "type": "u64"
+          },
+          {
+            "name": "debt",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceFeedMessage",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "feed_id",
+            "docs": [
+              "`FeedId` but avoid the type alias because of compatibility issues with Anchor's `idl-build` feature."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "price",
+            "type": "i64"
+          },
+          {
+            "name": "conf",
+            "type": "u64"
+          },
+          {
+            "name": "exponent",
+            "type": "i32"
+          },
+          {
+            "name": "publish_time",
+            "docs": [
+              "The timestamp of this price update in seconds"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "prev_publish_time",
+            "docs": [
+              "The timestamp of the previous price update. This field is intended to allow users to",
+              "identify the single unique price update for any moment in time:",
+              "for any time t, the unique update is the one such that prev_publish_time < t <= publish_time.",
+              "",
+              "Note that there may not be such an update while we are migrating to the new message-sending logic,",
+              "as some price updates on pythnet may not be sent to other chains (because the message-sending",
+              "logic may not have triggered). We can solve this problem by making the message-sending mandatory",
+              "(which we can do once publishers have migrated over).",
+              "",
+              "Additionally, this field may be equal to publish_time if the message is sent on a slot where",
+              "where the aggregation was unsuccesful. This problem will go away once all publishers have",
+              "migrated over to a recent version of pyth-agent."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "ema_price",
+            "type": "i64"
+          },
+          {
+            "name": "ema_conf",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PriceUpdateV2",
+      "docs": [
+        "A price update account. This account is used by the Pyth Receiver program to store a verified price update from a Pyth price feed.",
+        "It contains:",
+        "- `write_authority`: The write authority for this account. This authority can close this account to reclaim rent or update the account to contain a different price update.",
+        "- `verification_level`: The [`VerificationLevel`] of this price update. This represents how many Wormhole guardian signatures have been verified for this price update.",
+        "- `price_message`: The actual price update.",
+        "- `posted_slot`: The slot at which this price update was posted."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "write_authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "verification_level",
+            "type": {
+              "defined": {
+                "name": "VerificationLevel"
+              }
+            }
+          },
+          {
+            "name": "price_message",
+            "type": {
+              "defined": {
+                "name": "PriceFeedMessage"
+              }
+            }
+          },
+          {
+            "name": "posted_slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Repaid",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "debt",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VerificationLevel",
+      "docs": [
+        "Pyth price updates are bridged to all blockchains via Wormhole.",
+        "Using the price updates on another chain requires verifying the signatures of the Wormhole guardians.",
+        "The usual process is to check the signatures for two thirds of the total number of guardians, but this can be cumbersome on Solana because of the transaction size limits,",
+        "so we also allow for partial verification.",
+        "",
+        "This enum represents how much a price update has been verified:",
+        "- If `Full`, we have verified the signatures for two thirds of the current guardians.",
+        "- If `Partial`, only `num_signatures` guardian signatures have been checked.",
+        "",
+        "# Warning",
+        "Using partially verified price updates is dangerous, as it lowers the threshold of guardians that need to collude to produce a malicious price update."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Partial",
+            "fields": [
+              {
+                "name": "num_signatures",
+                "type": "u8"
+              }
+            ]
+          },
+          {
+            "name": "Full"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Withdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}

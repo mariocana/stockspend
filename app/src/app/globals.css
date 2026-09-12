@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@import "@solana/wallet-adapter-react-ui/styles.css";
+
+:root {
+  --bg: #0b0e14;
+  --panel: #131824;
+  --border: #232a3b;
+  --text: #e6e9f0;
+  --muted: #8a93a8;
+  --accent: #14f195;
+  --accent2: #9945ff;
+  --danger: #ff5c5c;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.wallet-adapter-button-trigger {
+  background: var(--accent2) !important;
+  border-radius: 10px !important;
+}
