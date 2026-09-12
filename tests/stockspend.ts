@@ -19,6 +19,14 @@ const usdc = (n: number) => new BN(Math.round(n * 10 ** USDC_DECIMALS));
 const shares = (n: number) => new BN(Math.round(n * 10 ** STOCK_DECIMALS));
 const price = (usd: number) => new BN(Math.round(usd * 1e6));
 
+const MOCK_FEED_ID = new Array(32).fill(0);
+const feedId = (hex: string) => Array.from(Buffer.from(hex, "hex"));
+// Pyth Equity.US.TSLA/USD
+const TSLA_FEED_HEX = "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1";
+// Pyth's sponsored push-oracle account for that feed (cloned from devnet, see Anchor.toml)
+const TSLA_PRICE_UPDATE = new PublicKey("E8WFH8brgP58arcuW2wwsPHiomYrSvrgWTsRLZLAEZUQ");
+const ONE_DAY = 24 * 60 * 60;
+
 describe("stockspend", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
@@ -39,7 +47,33 @@ describe("stockspend", () => {
   let userTsla: PublicKey;
 
   const LTV_BPS = 5000;
-  const TSLA_PRICE = 250; // USD
+  const TSLA_PRICE = 250; // USD (mock market)
+
+  const borrowAccounts = (extra: Partial<Record<string, PublicKey | null>> = {}) => ({
+    owner: user.publicKey,
+    config,
+    usdcMint,
+    treasury,
+    ownerUsdc: userUsdc,
+    market,
+    position,
+    priceUpdate: null,
+    tokenProgram: TOKEN_PROGRAM_ID,
+    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    systemProgram: SystemProgram.programId,
+    ...extra,
+  });
+  const withdrawAccounts = () => ({
+    owner: user.publicKey,
+    config,
+    stockMint: tslaMint,
+    market,
+    vault,
+    ownerStock: userTsla,
+    position,
+    priceUpdate: null,
+    tokenProgram: TOKEN_PROGRAM_ID,
+  });
 
   before(async () => {
     // fund user
@@ -90,7 +124,7 @@ describe("stockspend", () => {
 
   it("creates the TSLA market", async () => {
     await program.methods
-      .createMarket(price(TSLA_PRICE))
+      .createMarket(MOCK_FEED_ID, new BN(ONE_DAY), price(TSLA_PRICE))
       .accountsPartial({
         admin: admin.publicKey,
         config,
@@ -149,18 +183,7 @@ describe("stockspend", () => {
   it("borrows 400 USDC (4 x $250 x 50% = $500 max)", async () => {
     await program.methods
       .borrow(usdc(400))
-      .accountsPartial({
-        owner: user.publicKey,
-        config,
-        usdcMint,
-        treasury,
-        ownerUsdc: userUsdc,
-        market,
-        position,
-        tokenProgram: TOKEN_PROGRAM_ID,
-        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-        systemProgram: SystemProgram.programId,
-      })
+      .accountsPartial(borrowAccounts())
       .signers([user])
       .rpc();
 
@@ -173,18 +196,7 @@ describe("stockspend", () => {
     try {
       await program.methods
         .borrow(usdc(101))
-        .accountsPartial({
-          owner: user.publicKey,
-          config,
-          usdcMint,
-          treasury,
-          ownerUsdc: userUsdc,
-          market,
-          position,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
+        .accountsPartial(borrowAccounts())
         .signers([user])
         .rpc();
       assert.fail("should have thrown");
@@ -197,16 +209,7 @@ describe("stockspend", () => {
     try {
       await program.methods
         .withdraw(shares(1))
-        .accountsPartial({
-          owner: user.publicKey,
-          config,
-          stockMint: tslaMint,
-          market,
-          vault,
-          ownerStock: userTsla,
-          position,
-          tokenProgram: TOKEN_PROGRAM_ID,
-        })
+        .accountsPartial(withdrawAccounts())
         .signers([user])
         .rpc();
       assert.fail("should have thrown");
@@ -224,18 +227,7 @@ describe("stockspend", () => {
     try {
       await program.methods
         .borrow(usdc(1))
-        .accountsPartial({
-          owner: user.publicKey,
-          config,
-          usdcMint,
-          treasury,
-          ownerUsdc: userUsdc,
-          market,
-          position,
-          tokenProgram: TOKEN_PROGRAM_ID,
-          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-          systemProgram: SystemProgram.programId,
-        })
+        .accountsPartial(borrowAccounts())
         .signers([user])
         .rpc();
       assert.fail("should have thrown");
@@ -271,21 +263,156 @@ describe("stockspend", () => {
 
     await program.methods
       .withdraw(shares(4))
-      .accountsPartial({
-        owner: user.publicKey,
-        config,
-        stockMint: tslaMint,
-        market,
-        vault,
-        ownerStock: userTsla,
-        position,
-        tokenProgram: TOKEN_PROGRAM_ID,
-      })
+      .accountsPartial(withdrawAccounts())
       .signers([user])
       .rpc();
 
     pos = await program.account.position.fetch(position);
     expect(pos.collateral.toNumber()).to.eq(0);
     expect(Number((await getAccount(conn, userTsla)).amount)).to.eq(shares(10).toNumber());
+  });
+
+  describe("pyth-priced market", () => {
+    const pythMint = Keypair.generate();
+    let pMarket: PublicKey, pVault: PublicKey, pPosition: PublicKey, userPyth: PublicKey;
+
+    const setupMarket = async (mint: PublicKey, maxAge: number) => {
+      const [m] = PublicKey.findProgramAddressSync([Buffer.from("market"), mint.toBuffer()], program.programId);
+      const v = getAssociatedTokenAddressSync(mint, m, true);
+      await program.methods
+        .createMarket(feedId(TSLA_FEED_HEX), new BN(maxAge), new BN(0))
+        .accountsPartial({
+          admin: admin.publicKey,
+          config,
+          stockMint: mint,
+          market: m,
+          vault: v,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .rpc();
+      return { m, v };
+    };
+
+    before(async () => {
+      const mint = await createMint(conn, admin.payer, admin.publicKey, null, STOCK_DECIMALS, pythMint);
+      // 1 year: the cloned devnet account is months old, we still want to exercise the price path
+      ({ m: pMarket, v: pVault } = await setupMarket(mint, 365 * ONE_DAY));
+      [pPosition] = PublicKey.findProgramAddressSync(
+        [Buffer.from("position"), user.publicKey.toBuffer(), pMarket.toBuffer()],
+        program.programId
+      );
+      userPyth = (await getOrCreateAssociatedTokenAccount(conn, admin.payer, mint, user.publicKey)).address;
+      await mintTo(conn, admin.payer, mint, userPyth, admin.payer, shares(2).toNumber());
+
+      await program.methods
+        .deposit(shares(2))
+        .accountsPartial({
+          owner: user.publicKey,
+          stockMint: mint,
+          market: pMarket,
+          vault: pVault,
+          ownerStock: userPyth,
+          position: pPosition,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+    });
+
+    it("rejects update_price on a pyth market", async () => {
+      try {
+        await program.methods
+          .updatePrice(price(1))
+          .accountsPartial({ admin: admin.publicKey, config, market: pMarket })
+          .rpc();
+        assert.fail("should have thrown");
+      } catch (e: any) {
+        expect(e.error?.errorCode?.code).to.eq("NotMockMarket");
+      }
+    });
+
+    it("requires the price update account", async () => {
+      try {
+        await program.methods
+          .borrow(usdc(1))
+          .accountsPartial(borrowAccounts({ market: pMarket, position: pPosition, priceUpdate: null }))
+          .signers([user])
+          .rpc();
+        assert.fail("should have thrown");
+      } catch (e: any) {
+        expect(e.error?.errorCode?.code).to.eq("MissingPriceUpdate");
+      }
+    });
+
+    it("borrows up to LTV using the on-chain Pyth price", async () => {
+      // read the cloned account to compute the expected limit independently
+      const raw = (await conn.getAccountInfo(TSLA_PRICE_UPDATE))!.data;
+      const vlLen = raw[40] === 1 ? 1 : 2;
+      const off = 8 + 32 + vlLen + 32;
+      const p = Number(raw.readBigInt64LE(off));
+      const expo = raw.readInt32LE(off + 16);
+      const priceUsdMicro = Math.floor(p * 10 ** (expo + 6));
+      const maxDebt = Math.floor((2 * priceUsdMicro * LTV_BPS) / 10_000);
+
+      // just above the limit fails...
+      try {
+        await program.methods
+          .borrow(new BN(maxDebt + 1))
+          .accountsPartial(borrowAccounts({ market: pMarket, position: pPosition, priceUpdate: TSLA_PRICE_UPDATE }))
+          .signers([user])
+          .rpc();
+        assert.fail("should have thrown");
+      } catch (e: any) {
+        expect(e.error?.errorCode?.code).to.eq("ExceedsLtv");
+      }
+
+      // ...exactly the limit succeeds
+      await program.methods
+        .borrow(new BN(maxDebt))
+        .accountsPartial(borrowAccounts({ market: pMarket, position: pPosition, priceUpdate: TSLA_PRICE_UPDATE }))
+        .signers([user])
+        .rpc();
+      const pos = await program.account.position.fetch(pPosition);
+      expect(pos.debt.toNumber()).to.eq(maxDebt);
+    });
+
+    it("rejects a stale price when max age is tight", async () => {
+      const mint = await createMint(conn, admin.payer, admin.publicKey, null, STOCK_DECIMALS);
+      const { m, v } = await setupMarket(mint, 60);
+      const [pos] = PublicKey.findProgramAddressSync(
+        [Buffer.from("position"), user.publicKey.toBuffer(), m.toBuffer()],
+        program.programId
+      );
+      const ata = (await getOrCreateAssociatedTokenAccount(conn, admin.payer, mint, user.publicKey)).address;
+      await mintTo(conn, admin.payer, mint, ata, admin.payer, shares(1).toNumber());
+      await program.methods
+        .deposit(shares(1))
+        .accountsPartial({
+          owner: user.publicKey,
+          stockMint: mint,
+          market: m,
+          vault: v,
+          ownerStock: ata,
+          position: pos,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+
+      try {
+        await program.methods
+          .borrow(usdc(1))
+          .accountsPartial(borrowAccounts({ market: m, position: pos, priceUpdate: TSLA_PRICE_UPDATE }))
+          .signers([user])
+          .rpc();
+        assert.fail("should have thrown");
+      } catch (e: any) {
+        expect(e.error?.errorCode?.code).to.eq("StalePrice");
+      }
+    });
   });
 });
