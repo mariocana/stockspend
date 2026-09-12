@@ -158,6 +158,35 @@ describe("stockspend", () => {
     expect(Number((await getAccount(conn, treasury)).amount)).to.eq(usdc(100_000).toNumber());
   });
 
+  it("faucet caps non-admin mints and lets admin mint freely", async () => {
+    const faucetMint = await createMint(conn, admin.payer, config, null, STOCK_DECIMALS);
+    const call = (signer: Keypair | anchor.Wallet, amount: BN) =>
+      program.methods
+        .mintMock(amount)
+        .accountsPartial({
+          signer: signer.publicKey,
+          config,
+          mint: faucetMint,
+          destination: getAssociatedTokenAddressSync(faucetMint, signer.publicKey),
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers(signer instanceof Keypair ? [signer] : [])
+        .rpc();
+
+    try {
+      await call(user, shares(11));
+      assert.fail("should have thrown");
+    } catch (e: any) {
+      expect(e.error?.errorCode?.code).to.eq("FaucetCapExceeded");
+    }
+    await call(user, shares(10));
+    await call(admin, shares(1000));
+    const userAta = getAssociatedTokenAddressSync(faucetMint, user.publicKey);
+    expect(Number((await getAccount(conn, userAta)).amount)).to.eq(shares(10).toNumber());
+  });
+
   it("deposits 4 TSLA as collateral", async () => {
     await program.methods
       .deposit(shares(4))
