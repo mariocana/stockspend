@@ -1159,6 +1159,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyth-solana-receiver-sdk"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66596ab94606146630358bbf8b7187ac7353b766ab92028ecec7478a79a6059d"
+dependencies = [
+ "anchor-lang",
+ "hex",
+ "pythnet-sdk",
+]
+
+[[package]]
+name = "pythnet-sdk"
+version = "2.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "498d20fd330277697aaee92f341bdabdb4695b10e05f054157a18ad8b7746a17"
+dependencies = [
+ "anchor-lang",
+ "bincode",
+ "borsh 0.10.4",
+ "bytemuck",
+ "byteorder",
+ "fast-math",
+ "hex",
+ "rustc_version",
+ "serde",
+ "sha3",
+ "slow_primes",
+ "solana-program",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "qstring"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2653,6 +2685,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "pyth-solana-receiver-sdk",
 ]
 
 [[package]]

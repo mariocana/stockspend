@@ -21,3 +21,12 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+# Local validator: clone Pyth's sponsored TSLA/USD PriceUpdateV2 account so tests
+# exercise the real oracle path (the account is stale, which is also tested).
+[test.validator]
+bind_address = "127.0.0.1"
+url = "https://api.devnet.solana.com"
+
+[[test.validator.clone]]
+address = "E8WFH8brgP58arcuW2wwsPHiomYrSvrgWTsRLZLAEZUQ"
