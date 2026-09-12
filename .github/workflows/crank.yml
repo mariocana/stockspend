@@ -1,0 +1,26 @@
+name: price-crank
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  crank:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: echo "$SOLANA_KEYPAIR" > /tmp/id.json
+        env:
+          SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
+      - run: npm run crank
+        env:
+          ANCHOR_PROVIDER_URL: ${{ secrets.RPC_URL || 'https://api.devnet.solana.com' }}
+          ANCHOR_WALLET: /tmp/id.json
+          PYTH_API_KEY: ${{ secrets.PYTH_API_KEY }}

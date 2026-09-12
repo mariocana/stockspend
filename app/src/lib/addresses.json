@@ -1,22 +1,26 @@
 {
-  "cluster": "http://127.0.0.1:8899",
+  "cluster": "https://api.devnet.solana.com",
   "programId": "HHUNGo3PrayWbGD3sFf8upkEpAJbF5oMvVGsYBGmc2zY",
   "config": "GCAnj2FoCMX8MAF8d7rvfKxZM11yySinRQ9JZU84uSNs",
-  "usdcMint": "APBQNue9kM9FdC5yAGDN5JkCkf7EZioqoYAdS17Jd647",
-  "treasury": "AjkohtR7Gvpby8ybAfZQjQuCLiVQA5dPGVrzrD1xgBNN",
+  "usdcMint": "4UmhkHnwxaPW8H7aCp2Hi4cZjsmzf6wDQRDPp2WiNix4",
+  "treasury": "2nEahPZQKogALTk9RD3Q6epvbk1PUfpfuFnAQKd92qGS",
   "ltvBps": 5000,
   "markets": {
     "TSLAx": {
-      "name": "Tesla",
-      "mint": "DasNfCNt4XFLdozcwXWpg9tTE2u6q493Tjb27Sxgu1Ko",
-      "market": "8GMLuks611BcgxjocfdDR7Gkqo7aqQU9AjKysbvPeVDk",
-      "feedId": null
+      "name": "Tesla xStock",
+      "mint": "HFTkTgf4HpQn1buNPtB4L31B9Z2S3p2s2xMPk5MtRhAZ",
+      "market": "3RPXQ46Hgtte6Pg4MEVuqSafKNYLTG5R25en1m6gsyUX",
+      "feedId": null,
+      "mainnetMint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      "source": "jupiter"
     },
     "AAPLx": {
-      "name": "Apple",
-      "mint": "AYRUepi42Gn7AsAe1qVx5RpyN29USWsBSiuQ38hJXbEB",
-      "market": "54hzMRhsbv5kbrW9TMkVqmggNLTPwZEnmjzxQsjnyJcs",
-      "feedId": null
+      "name": "Apple xStock",
+      "mint": "HWWd84YQPUfJHNvy2JJojc5JZttE1e2U1CoDdM5vo6v4",
+      "market": "kDGomjzD67yQXeGfdbpp36pPL4vCvafStkZH2mtT8Xf",
+      "feedId": null,
+      "mainnetMint": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+      "source": "jupiter"
     }
   }
 }

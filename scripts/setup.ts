@@ -13,12 +13,24 @@ import { Stockspend } from "../target/types/stockspend";
 import idl from "../target/idl/stockspend.json";
 
 const LTV_BPS = 5000;
-const EQUITY_MAX_AGE = 4 * 24 * 60 * 60;
+const MAX_PRICE_AGE = 60 * 60;
 const ZERO_FEED = new Array(32).fill(0);
 
 const STOCKS = [
-  { symbol: "TSLAx", name: "Tesla", feed: "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1", mockPrice: 413.35 },
-  { symbol: "AAPLx", name: "Apple", feed: "49f6b65cb1de6b10eaf75e7c03ca029c306d0357e91b5311b175084a5ad55688", mockPrice: 301.81 },
+  {
+    symbol: "TSLAx",
+    name: "Tesla xStock",
+    feed: "47a156470288850a440df3a6ce85a55917b813a19bb5b31128a33a986566a362",
+    mainnetMint: "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+    mockPrice: 367.8,
+  },
+  {
+    symbol: "AAPLx",
+    name: "Apple xStock",
+    feed: "978e6cc68a119ce066aa830017318563a9ed04ec3a0a6439010fc11296a58675",
+    mainnetMint: "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+    mockPrice: 332.7,
+  },
 ];
 
 async function main() {
@@ -28,27 +40,33 @@ async function main() {
   const admin = provider.wallet as anchor.Wallet;
   const conn = provider.connection;
   const url = conn.rpcEndpoint;
-  const oracle = process.env.ORACLE ?? (url.includes("127.0.0.1") || url.includes("localhost") ? "mock" : "pyth");
+  const oracle = process.env.ORACLE ?? "jupiter";
   console.log(`cluster ${url} · oracle ${oracle} · admin ${admin.publicKey.toBase58()}`);
 
   const [config] = PublicKey.findProgramAddressSync([Buffer.from("config")], program.programId);
-  const usdcMint = await createMint(conn, admin.payer, config, null, 6);
+  const existing: any = await (program.account as any).config.fetchNullable(config);
+  let usdcMint: PublicKey;
+  if (existing) {
+    usdcMint = existing.usdcMint;
+    console.log(`config ${config.toBase58()} already initialized, reusing USDC ${usdcMint.toBase58()}`);
+  } else {
+    usdcMint = await createMint(conn, admin.payer, config, null, 6);
+    await program.methods
+      .initialize(LTV_BPS)
+      .accountsPartial({
+        admin: admin.publicKey,
+        config,
+        usdcMint,
+        treasury: getAssociatedTokenAddressSync(usdcMint, config, true),
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+    console.log(`config ${config.toBase58()}`);
+    console.log(`USDC ${usdcMint.toBase58()}`);
+  }
   const treasury = getAssociatedTokenAddressSync(usdcMint, config, true);
-
-  await program.methods
-    .initialize(LTV_BPS)
-    .accountsPartial({
-      admin: admin.publicKey,
-      config,
-      usdcMint,
-      treasury,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-      systemProgram: SystemProgram.programId,
-    })
-    .rpc();
-  console.log(`config ${config.toBase58()}`);
-  console.log(`USDC ${usdcMint.toBase58()}`);
 
   const markets: Record<string, any> = {};
   for (const s of STOCKS) {
@@ -57,7 +75,7 @@ async function main() {
     const vault = getAssociatedTokenAddressSync(mint, market, true);
     const feed = oracle === "pyth" ? Array.from(Buffer.from(s.feed, "hex")) : ZERO_FEED;
     await program.methods
-      .createMarket(feed, new BN(EQUITY_MAX_AGE), new BN(Math.round(s.mockPrice * 1e6)))
+      .createMarket(feed, new BN(MAX_PRICE_AGE), new BN(Math.round(s.mockPrice * 1e6)))
       .accountsPartial({
         admin: admin.publicKey,
         config,
@@ -69,12 +87,20 @@ async function main() {
         systemProgram: SystemProgram.programId,
       })
       .rpc();
-    markets[s.symbol] = { name: s.name, mint: mint.toBase58(), market: market.toBase58(), feedId: oracle === "pyth" ? s.feed : null };
+    markets[s.symbol] = {
+      name: s.name,
+      mint: mint.toBase58(),
+      market: market.toBase58(),
+      feedId: oracle === "pyth" ? s.feed : null,
+      mainnetMint: s.mainnetMint,
+      source: oracle === "pyth" ? "pyth" : "jupiter",
+    };
     console.log(`${s.symbol} mint ${mint.toBase58()} market ${market.toBase58()}`);
   }
 
+  const funding = Number(process.env.TREASURY_USDC ?? 1_000_000);
   await program.methods
-    .mintMock(new BN(1_000_000 * 1e6))
+    .mintMock(new BN(funding * 1e6))
     .accountsPartial({
       signer: admin.publicKey,
       config,
@@ -86,7 +112,7 @@ async function main() {
     })
     .rpc();
   await program.methods
-    .fundTreasury(new BN(1_000_000 * 1e6))
+    .fundTreasury(new BN(funding * 1e6))
     .accountsPartial({
       funder: admin.publicKey,
       config,
@@ -96,7 +122,7 @@ async function main() {
       tokenProgram: TOKEN_PROGRAM_ID,
     })
     .rpc();
-  console.log("treasury funded with 1,000,000 USDC");
+  console.log(`treasury funded with ${funding.toLocaleString("en-US")} USDC`);
 
   const out = {
     cluster: url,

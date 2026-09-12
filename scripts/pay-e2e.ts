@@ -1,9 +1,8 @@
 import * as anchor from "@coral-xyz/anchor";
-import { Program, BN } from "@coral-xyz/anchor";
+import { Program, BN, Idl } from "@coral-xyz/anchor";
 import { Keypair, PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync, getAccount } from "@solana/spl-token";
-import { Stockspend } from "../target/types/stockspend";
-import idl from "../target/idl/stockspend.json";
+import idl from "../app/src/lib/idl.json";
 import addresses from "../app/src/lib/addresses.json";
 
 const APP = process.env.APP_URL ?? "http://localhost:3000";
@@ -15,10 +14,15 @@ async function main() {
   const customer = Keypair.generate();
   const merchant = Keypair.generate().publicKey;
   const reference = Keypair.generate().publicKey;
-  await conn.confirmTransaction(await conn.requestAirdrop(customer.publicKey, 2 * LAMPORTS_PER_SOL), "confirmed");
+  try {
+    await conn.confirmTransaction(await conn.requestAirdrop(customer.publicKey, 2 * LAMPORTS_PER_SOL), "confirmed");
+  } catch {
+    const fund = new Transaction().add(SystemProgram.transfer({ fromPubkey: provider.wallet.publicKey, toPubkey: customer.publicKey, lamports: 0.05 * LAMPORTS_PER_SOL }));
+    await provider.sendAndConfirm(fund);
+  }
 
   const wallet = new anchor.Wallet(customer);
-  const program = new Program(idl as Stockspend, new anchor.AnchorProvider(conn, wallet, { commitment: "confirmed" }));
+  const program = new Program(idl as Idl, new anchor.AnchorProvider(conn, wallet, { commitment: "confirmed" }));
   const config = new PublicKey(addresses.config);
   const usdcMint = new PublicKey(addresses.usdcMint);
   const tsla = addresses.markets.TSLAx;

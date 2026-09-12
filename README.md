@@ -33,6 +33,18 @@ repay / withdraw
 PDAs: `["config"]`, `["market", stock_mint]`, `["position", owner, market]`.
 Prices are USD × 10⁶ per share; stock value = `amount × price / 10^decimals` in USDC base units.
 
+### Devnet deployment
+
+| | |
+|---|---|
+| Program | `HHUNGo3PrayWbGD3sFf8upkEpAJbF5oMvVGsYBGmc2zY` |
+| Config | `GCAnj2FoCMX8MAF8d7rvfKxZM11yySinRQ9JZU84uSNs` |
+| Mock USDC | `4UmhkHnwxaPW8H7aCp2Hi4cZjsmzf6wDQRDPp2WiNix4` |
+| TSLAx (mock) | `HFTkTgf4HpQn1buNPtB4L31B9Z2S3p2s2xMPk5MtRhAZ` |
+| AAPLx (mock) | `HWWd84YQPUfJHNvy2JJojc5JZttE1e2U1CoDdM5vo6v4` |
+
+All addresses live in `app/src/lib/addresses.json`. The in-app faucet mints mock tokens to any wallet.
+
 ### Oracle
 
 `borrow` and `withdraw` take an optional `price_update` account — a Pyth
@@ -41,10 +53,14 @@ for the market's `feed_id`, checked for feed match, full verification and age
 (`max_price_age_secs`). A market created with an all-zero feed id is **mock-priced**
 (admin sets the price via `update_price`) — used for local tests and the devnet faucet demo.
 
-US equity feeds (`Equity.US.TSLA/USD` = `16dad506…`) only publish 09:30–16:00 ET on
-trading days, so `max_price_age_secs` must cover nights and weekends (72h in the demo).
-Local tests clone Pyth's sponsored TSLA account from devnet (`E8WFH8…`) to exercise
-the real oracle path.
+The right feeds for xStocks collateral are Pyth's `Crypto.TSLAX/USD` (`47a15647…`) and
+`Crypto.AAPLX/USD` (`978e6cc6…`): they price the token itself and trade 24/7. Since the
+August 2026 Pyth Core upgrade, Hermes requires an API key and those feeds are not in the
+free tier, so the **devnet demo uses mock-priced markets pushed every 15 minutes from the
+Jupiter price API** (`scripts/price-crank.ts`, run by GitHub Actions) with a 1h max age.
+The Pyth path is implemented and tested: local tests clone Pyth's sponsored TSLA account
+from devnet (`E8WFH8…`) to exercise it end to end, and `ORACLE=pyth npm run setup` creates
+Pyth-priced markets given an entitled `PYTH_API_KEY`.
 
 ### v1 scope (hackathon)
 - Fixed LTV, no interest, no liquidations, protocol treasury is the sole lender.
@@ -56,6 +72,17 @@ anchor keys sync        # once, after generating the program keypair
 anchor build
 anchor test
 ```
+
+### Devnet
+
+```bash
+anchor deploy --provider.cluster devnet
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com npm run setup
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com npm run crank      # EVERY=300 to loop
+```
+
+`.github/workflows/crank.yml` runs the crank every 15 minutes; it needs the `SOLANA_KEYPAIR`
+secret (contents of the admin `id.json`) and optionally `RPC_URL` / `PYTH_API_KEY`.
 
 ## Pay with portfolio (Solana Pay)
 
