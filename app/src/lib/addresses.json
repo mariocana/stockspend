@@ -2,20 +2,20 @@
   "cluster": "http://127.0.0.1:8899",
   "programId": "HHUNGo3PrayWbGD3sFf8upkEpAJbF5oMvVGsYBGmc2zY",
   "config": "GCAnj2FoCMX8MAF8d7rvfKxZM11yySinRQ9JZU84uSNs",
-  "usdcMint": "J9WS2fZUMJ51DMtzai1xvxd9MoaGKtiYAH7JsmveLCdT",
-  "treasury": "5ZpJ7Sdy6zp1yqGBi3mQm63aY1uvoNv6zuwaBo3bm6K1",
+  "usdcMint": "APBQNue9kM9FdC5yAGDN5JkCkf7EZioqoYAdS17Jd647",
+  "treasury": "AjkohtR7Gvpby8ybAfZQjQuCLiVQA5dPGVrzrD1xgBNN",
   "ltvBps": 5000,
   "markets": {
     "TSLAx": {
       "name": "Tesla",
-      "mint": "GS64Pz7stQDAo5nGQMA7m34kk7PR5e3Xd7ovDDVbF8mN",
-      "market": "47mJqKAFBY8wME72LGwco6cp3epWipxtSXVQz6MnqXE1",
+      "mint": "DasNfCNt4XFLdozcwXWpg9tTE2u6q493Tjb27Sxgu1Ko",
+      "market": "8GMLuks611BcgxjocfdDR7Gkqo7aqQU9AjKysbvPeVDk",
       "feedId": null
     },
     "AAPLx": {
       "name": "Apple",
-      "mint": "D2QmpTw7QtEMLLSog1GsXRpGr9UHuNu562tQDPjjzots",
-      "market": "HZpkCg9BSGQeQLRCaP1TLqREekni6Vn3YcMf2djWuUpa",
+      "mint": "AYRUepi42Gn7AsAe1qVx5RpyN29USWsBSiuQ38hJXbEB",
+      "market": "54hzMRhsbv5kbrW9TMkVqmggNLTPwZEnmjzxQsjnyJcs",
       "feedId": null
     }
   }

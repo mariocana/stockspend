@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useActions } from "@/hooks/useActions";
 import { MarketCard } from "@/components/MarketCard";
@@ -23,6 +24,7 @@ export default function Home() {
           <p className="text-sm text-[var(--muted)]">Spend your stocks without selling them.</p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/merchant" className="text-xs text-[var(--muted)] hover:text-[var(--text)]">merchant</Link>
           <button onClick={refresh} disabled={loading} className="text-xs text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-40">
             {loading ? "refreshing…" : "refresh"}
           </button>
