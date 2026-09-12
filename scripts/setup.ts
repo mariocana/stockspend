@@ -13,7 +13,7 @@ import { Stockspend } from "../target/types/stockspend";
 import idl from "../target/idl/stockspend.json";
 
 const LTV_BPS = 5000;
-const EQUITY_MAX_AGE = 72 * 60 * 60;
+const EQUITY_MAX_AGE = 4 * 24 * 60 * 60;
 const ZERO_FEED = new Array(32).fill(0);
 
 const STOCKS = [
