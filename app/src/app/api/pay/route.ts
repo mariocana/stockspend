@@ -15,7 +15,7 @@ export async function OPTIONS() {
 
 export async function GET(req: NextRequest) {
   const label = req.nextUrl.searchParams.get("label") ?? "StockSpend";
-  return NextResponse.json({ label, icon: `${req.nextUrl.origin}/icon.png` }, { headers: cors });
+  return NextResponse.json({ label, icon: `${req.nextUrl.origin}/icon.svg` }, { headers: cors });
 }
 
 export async function POST(req: NextRequest) {
