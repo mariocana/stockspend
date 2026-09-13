@@ -16,7 +16,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: echo "$SOLANA_KEYPAIR" > /tmp/id.json
+      - run: |
+          if [ -z "$SOLANA_KEYPAIR" ]; then
+            echo "::error::SOLANA_KEYPAIR secret is not set (Settings → Secrets and variables → Actions)"
+            exit 1
+          fi
+          echo "$SOLANA_KEYPAIR" > /tmp/id.json
+          node -e 'const k=require("/tmp/id.json"); if(!Array.isArray(k)||k.length!==64) throw new Error("SOLANA_KEYPAIR must be the JSON array from id.json")'
         env:
           SOLANA_KEYPAIR: ${{ secrets.SOLANA_KEYPAIR }}
       - run: npm run crank
