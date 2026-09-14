@@ -9,6 +9,10 @@ Built for [Stocklana](https://hackathons.solana.com/hackathons/stocklana) (Sept 
 Try it: connect Phantom in testnet mode, use the in-app faucets for TSLAx/AAPLx, deposit,
 then open `/merchant` and pay the QR from your phone.
 
+![Portfolio](docs/screenshots/home.png)
+
+![Checkout: choose which stock backs the payment](docs/screenshots/checkout.png)
+
 Deposit tokenized stocks (xStocks) as collateral, borrow USDC against them, and pay
 anywhere with Solana Pay — in one transaction. Your shares stay yours: no sale, no
 taxable event, no lost upside.
