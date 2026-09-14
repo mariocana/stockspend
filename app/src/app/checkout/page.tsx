@@ -39,6 +39,7 @@ function Checkout() {
     setError(null);
     try {
       setState("signing");
+      await fetch("/api/refresh").catch(() => null);
       const { tx, lastValidBlockHeight } = await buildPayTransaction(connection, publicKey, req);
       const s = await sendTransaction(tx, connection);
       setState("confirming");

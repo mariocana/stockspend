@@ -84,6 +84,11 @@ ANCHOR_PROVIDER_URL=https://api.devnet.solana.com npm run crank      # EVERY=300
 `.github/workflows/crank.yml` runs the crank every 15 minutes; it needs the `SOLANA_KEYPAIR`
 secret (contents of the admin `id.json`) and optionally `RPC_URL` / `PYTH_API_KEY`.
 
+GitHub's cron is best-effort, so the app also refreshes on demand: with `ADMIN_KEYPAIR`
+(same JSON array) set on the server, `/api/refresh` pushes a fresh Jupiter price for any
+mock market older than 20 minutes. The portfolio page, the checkout and `/api/pay` call it
+before building a transaction, so a payment never fails on a stale price.
+
 ## Pay with portfolio (Solana Pay)
 
 `/merchant` creates a payment request and shows a QR code. It is a Solana Pay

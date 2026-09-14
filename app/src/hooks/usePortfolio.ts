@@ -15,6 +15,7 @@ export function usePortfolio() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
+      await fetch("/api/refresh").catch(() => null);
       setData(await fetchPortfolio(connection, publicKey ?? undefined));
     } finally {
       setLoading(false);

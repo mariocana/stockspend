@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { RPC_URL } from "@/lib/program";
 import { buildPayTransaction, parsePayParams } from "@/lib/pay";
+import { refreshStalePrices } from "@/lib/crank";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
   }
   try {
     const connection = new Connection(RPC_URL, "confirmed");
+    await refreshStalePrices(connection).catch(() => null);
     const { tx, plan } = await buildPayTransaction(connection, account, pay);
     const transaction = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString("base64");
     const message =
