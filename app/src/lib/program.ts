@@ -22,6 +22,7 @@ export type MarketMeta = {
   mint: PublicKey;
   market: PublicKey;
   feedId: string | null;
+  source: string;
 };
 
 export const MARKETS: MarketMeta[] = Object.entries(addresses.markets).map(([symbol, m]) => ({
@@ -30,6 +31,7 @@ export const MARKETS: MarketMeta[] = Object.entries(addresses.markets).map(([sym
   mint: new PublicKey(m.mint),
   market: new PublicKey(m.market),
   feedId: m.feedId,
+  source: (m as any).source ?? (m.feedId ? "pyth" : "mock"),
 }));
 
 export function getProgram(connection: Connection, wallet?: AnchorWallet) {

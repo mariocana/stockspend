@@ -38,7 +38,7 @@ export function MarketCard({ m, connected, busy, onFaucet, onDeposit, onWithdraw
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">{m.symbol}</h2>
             <span className="rounded-full border border-[var(--border)] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[var(--muted)]">
-              {m.feedId ? "pyth" : "mock"}
+              {m.source}
             </span>
           </div>
           <p className="text-sm text-[var(--muted)]">{m.name}</p>
