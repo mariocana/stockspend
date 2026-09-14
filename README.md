@@ -55,6 +55,14 @@ Prices are USD × 10⁶ per share; stock value = `amount × price / 10^decimals`
 
 All addresses live in `app/src/lib/addresses.json`. The in-app faucet mints mock tokens to any wallet.
 
+The transactions in the demo video, from wallet
+[`PC39sg…or6M`](https://explorer.solana.com/address/PC39sgxQTsgXwREbPZRLUBocm7Cd3q4nrmAHJFuor6M?cluster=devnet):
+
+| | Signature |
+|---|---|
+| Coffee, $4.50 via Solana Pay QR from Phantom: `borrow` + `transfer_checked` in one tx | [`NxE28j…`](https://explorer.solana.com/tx/NxE28jEz8Tu8nT9YmriDCNZGcbUNHoFyhuKkswQgutb4ob3WxsuaJyQZXbuiPz19RoNjckf1vvMB4VrYXbF9B6c?cluster=devnet) |
+| Concert tickets, $120 via checkout in Phantom, collateral chosen by the payer | [`3qjDX3…`](https://explorer.solana.com/tx/3qjDX3WEjM45nuhunHnZGs2jqX14CwhqxpqVMuBPha44pMXSuxRJf7GFEmMqtbxu8YKYfnfDErvWYg3WMDoh1QM5?cluster=devnet) |
+
 ### Oracle
 
 `borrow` and `withdraw` take an optional `price_update` account — a Pyth
