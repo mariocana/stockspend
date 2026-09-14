@@ -62,11 +62,12 @@ export function solanaPayUrl(origin: string, req: PayRequest) {
   return `solana:${encodeURIComponent(`${origin}/api/pay?${payQuery(req)}`)}`;
 }
 
-export function planPayment(p: Portfolio, amount: number): PayPlan {
+export function planPayment(p: Portfolio, amount: number, preferred?: string): PayPlan {
   const shortfall = Math.max(0, +(amount - p.walletUsdc).toFixed(6));
   const borrows: PayPlan["borrows"] = [];
   let left = shortfall;
-  for (const m of [...p.markets].sort((a, b) => b.room - a.room)) {
+  const order = [...p.markets].sort((a, b) => (a.symbol === preferred ? -1 : b.symbol === preferred ? 1 : b.room - a.room));
+  for (const m of order) {
     if (left <= 0) break;
     const take = Math.min(left, Math.floor(m.room * 1e6) / 1e6);
     if (take > 0) {
@@ -85,9 +86,9 @@ export function planPayment(p: Portfolio, amount: number): PayPlan {
   };
 }
 
-export async function buildPayTransaction(connection: Connection, payer: PublicKey, req: PayRequest) {
+export async function buildPayTransaction(connection: Connection, payer: PublicKey, req: PayRequest, preferred?: string) {
   const portfolio = await fetchPortfolio(connection, payer);
-  const plan = planPayment(portfolio, req.amount);
+  const plan = planPayment(portfolio, req.amount, preferred);
   if (!plan.ok) throw new Error(plan.reason);
 
   const program = getProgram(connection);

@@ -6,7 +6,7 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { PayPlan, buildPayTransaction, parsePayParams, planPayment } from "@/lib/pay";
-import { fetchPortfolio } from "@/lib/portfolio";
+import { Portfolio, fetchPortfolio } from "@/lib/portfolio";
 import { usd } from "@/lib/program";
 
 const WalletButton = dynamic(() => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton), { ssr: false });
@@ -24,15 +24,19 @@ function Checkout() {
   const req = useMemo(() => parsePayParams(params), [params]);
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const [plan, setPlan] = useState<PayPlan | null>(null);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [preferred, setPreferred] = useState<string | undefined>(undefined);
   const [state, setState] = useState<"idle" | "signing" | "confirming" | "done">("idle");
   const [sig, setSig] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!req || !publicKey) return setPlan(null);
-    fetchPortfolio(connection, publicKey).then((p) => setPlan(planPayment(p, req.amount)));
+    if (!req || !publicKey) return setPortfolio(null);
+    fetchPortfolio(connection, publicKey).then(setPortfolio);
   }, [req, publicKey, connection]);
+
+  const plan: PayPlan | null = useMemo(() => (req && portfolio ? planPayment(portfolio, req.amount, preferred) : null), [req, portfolio, preferred]);
+  const choices = useMemo(() => (portfolio ? portfolio.markets.filter((m) => m.room > 0).sort((a, b) => b.room - a.room) : []), [portfolio]);
 
   const pay = async () => {
     if (!req || !publicKey) return;
@@ -40,7 +44,7 @@ function Checkout() {
     try {
       setState("signing");
       await fetch("/api/refresh").catch(() => null);
-      const { tx, lastValidBlockHeight } = await buildPayTransaction(connection, publicKey, req);
+      const { tx, lastValidBlockHeight } = await buildPayTransaction(connection, publicKey, req, preferred);
       const s = await sendTransaction(tx, connection);
       setState("confirming");
       await connection.confirmTransaction({ signature: s, blockhash: tx.recentBlockhash!, lastValidBlockHeight }, "confirmed");
@@ -81,7 +85,24 @@ function Checkout() {
               <>
                 <Row label="Shortfall" value={usd(plan.shortfall)} />
                 <div className="rounded-xl border border-[var(--accent2)]/40 bg-[var(--accent2)]/10 p-3 text-sm">
-                  <div className="mb-1 font-semibold">Borrow against your portfolio</div>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <span className="font-semibold">Borrow against</span>
+                    {choices.length > 1 ? (
+                      <select
+                        value={preferred ?? choices[0].symbol}
+                        onChange={(e) => setPreferred(e.target.value)}
+                        className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-sm outline-none focus:border-[var(--accent2)]"
+                      >
+                        {choices.map((m) => (
+                          <option key={m.symbol} value={m.symbol}>
+                            {m.symbol} · {usd(m.room)} available
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="text-[var(--muted)]">{choices[0]?.symbol ?? "—"}</span>
+                    )}
+                  </div>
                   {plan.borrows.map((b) => (
                     <div key={b.market.symbol} className="flex justify-between text-[var(--muted)]">
                       <span>{usd(b.amount)} from {b.market.symbol}</span>
