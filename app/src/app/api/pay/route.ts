@@ -21,7 +21,10 @@ function publicOrigin(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const label = req.nextUrl.searchParams.get("label") ?? "StockSpend";
+  const pay = parsePayParams(req.nextUrl.searchParams);
+  const label = pay
+    ? `${pay.label} · ${pay.amount} USDC · paid from your stocks via StockSpend`
+    : "StockSpend";
   return NextResponse.json({ label, icon: `${publicOrigin(req)}/icon.svg` }, { headers: cors });
 }
 
