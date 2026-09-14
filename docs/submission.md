@@ -22,6 +22,6 @@ Next: liquidations and interest, Pyth Crypto.TSLAX/USD feeds once entitled, real
 **Links:**
 - GitHub: https://github.com/mariocana/stockspend
 - Live demo: https://stockspend-production.up.railway.app
-- Video: https://youtu.be/8KrQ0pcYJJY
+- Video: https://youtu.be/2l54QoZQWtg
 
 **Track:** Consumer (mobile-first investing, spending from a portfolio) — also touches Credit.
