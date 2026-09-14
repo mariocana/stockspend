@@ -49,6 +49,18 @@ export async function refreshStalePrices(connection: Connection) {
   tx.feePayer = admin.publicKey;
   tx.sign(admin);
   const sig = await connection.sendRawTransaction(tx.serialize());
-  await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, "confirmed");
+  await waitForSignature(connection, sig, lastValidBlockHeight);
   return { refreshed, signature: sig };
+}
+
+async function waitForSignature(connection: Connection, signature: string, lastValidBlockHeight: number) {
+  for (let i = 0; i < 30; i++) {
+    const { value } = await connection.getSignatureStatuses([signature]);
+    const st = value[0];
+    if (st?.err) throw new Error(`price update failed: ${JSON.stringify(st.err)}`);
+    if (st && (st.confirmationStatus === "confirmed" || st.confirmationStatus === "finalized")) return;
+    if ((await connection.getBlockHeight("confirmed")) > lastValidBlockHeight) throw new Error("price update expired");
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  throw new Error("price update not confirmed in time");
 }
