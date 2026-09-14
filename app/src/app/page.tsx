@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -10,8 +11,16 @@ import { STOCK_DECIMALS, USDC_DECIMALS, USDC_MINT } from "@/lib/program";
 
 const WalletButton = dynamic(() => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton), { ssr: false });
 
-export default function Home() {
-  const { data, loading, refresh } = usePortfolio();
+export default function HomePage() {
+  return (
+    <Suspense>
+      <Home />
+    </Suspense>
+  );
+}
+
+function Home() {
+  const { data, loading, refresh, readOnly } = usePortfolio();
   const a = useActions(refresh);
 
   return (
@@ -31,6 +40,12 @@ export default function Home() {
           <WalletButton />
         </div>
       </header>
+
+      {readOnly && (
+        <div className="mb-6 rounded-xl border border-[var(--accent2)]/40 bg-[var(--accent2)]/10 px-4 py-3 text-sm text-[var(--muted)]">
+          Viewing a portfolio in read-only mode. Connect a wallet to act.
+        </div>
+      )}
 
       {a.error && (
         <div className="mb-6 rounded-xl border border-[var(--danger)]/40 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger)]">{a.error}</div>

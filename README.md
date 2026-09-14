@@ -7,7 +7,8 @@ Built for [Stocklana](https://hackathons.solana.com/hackathons/stocklana) (Sept 
 **Live demo (devnet):** https://stockspend-production.up.railway.app · **Video:** https://youtu.be/2l54QoZQWtg
 
 Try it: connect Phantom in testnet mode, use the in-app faucets for TSLAx/AAPLx, deposit,
-then open `/merchant` and pay the QR from your phone.
+then open `/merchant` and pay the QR from your phone. No wallet? Browse a live portfolio
+read-only: [`/?view=PC39sg…`](https://stockspend-production.up.railway.app/?view=PC39sgxQTsgXwREbPZRLUBocm7Cd3q4nrmAHJFuor6M).
 
 ![Portfolio](docs/screenshots/home.png)
 

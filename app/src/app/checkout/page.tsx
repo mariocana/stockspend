@@ -8,6 +8,7 @@ import Link from "next/link";
 import { PayPlan, buildPayTransaction, parsePayParams, planPayment } from "@/lib/pay";
 import { Portfolio, fetchPortfolio } from "@/lib/portfolio";
 import { usd } from "@/lib/program";
+import { useViewedKey } from "@/hooks/usePortfolio";
 
 const WalletButton = dynamic(() => import("@solana/wallet-adapter-react-ui").then((m) => m.WalletMultiButton), { ssr: false });
 
@@ -24,6 +25,7 @@ function Checkout() {
   const req = useMemo(() => parsePayParams(params), [params]);
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const { owner, readOnly } = useViewedKey();
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [preferred, setPreferred] = useState<string | undefined>(undefined);
   const [state, setState] = useState<"idle" | "signing" | "confirming" | "done">("idle");
@@ -31,9 +33,9 @@ function Checkout() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!req || !publicKey) return setPortfolio(null);
-    fetchPortfolio(connection, publicKey).then(setPortfolio);
-  }, [req, publicKey, connection]);
+    if (!req || !owner) return setPortfolio(null);
+    fetchPortfolio(connection, owner).then(setPortfolio);
+  }, [req, owner, connection]);
 
   const plan: PayPlan | null = useMemo(() => (req && portfolio ? planPayment(portfolio, req.amount, preferred) : null), [req, portfolio, preferred]);
   const choices = useMemo(() => (portfolio ? portfolio.markets.filter((m) => m.room > 0).sort((a, b) => b.room - a.room) : []), [portfolio]);
@@ -74,7 +76,7 @@ function Checkout() {
             <a href={`https://explorer.solana.com/tx/${sig}?cluster=custom&customUrl=${encodeURIComponent(connection.rpcEndpoint)}`} target="_blank" className="mt-2 block break-all font-mono text-[10px] text-[var(--muted)] hover:text-[var(--text)]">{sig}</a>
             <Link href="/" className="mt-4 inline-block text-sm text-[var(--muted)] hover:text-[var(--text)]">← back to portfolio</Link>
           </section>
-        ) : !publicKey ? (
+        ) : !owner ? (
           <div className="flex justify-center"><WalletButton /></div>
         ) : !plan ? (
           <p className="text-center text-sm text-[var(--muted)]">Checking your portfolio…</p>
@@ -118,7 +120,7 @@ function Checkout() {
             {error && <div className="text-sm text-[var(--danger)]">{error}</div>}
             <button
               onClick={pay}
-              disabled={!plan.ok || state !== "idle"}
+              disabled={!plan.ok || state !== "idle" || readOnly}
               className="w-full rounded-lg bg-[var(--accent)] py-3 text-sm font-semibold text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {state === "signing" ? "Waiting for wallet…" : state === "confirming" ? "Confirming…" : plan.shortfall > 0 ? `Borrow & pay ${usd(req.amount)}` : `Pay ${usd(req.amount)}`}
