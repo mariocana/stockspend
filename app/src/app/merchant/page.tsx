@@ -5,7 +5,7 @@ import { Keypair, PublicKey } from "@solana/web3.js";
 import { useConnection } from "@solana/wallet-adapter-react";
 import QRCode from "qrcode";
 import Link from "next/link";
-import { DEMO_MERCHANT, PayRequest, findPayment, payQuery, solanaPayUrl } from "@/lib/pay";
+import { DEMO_MERCHANT, PayRequest, findPayment, payQuery, phantomBrowseUrl, solanaPayUrl } from "@/lib/pay";
 import { USDC_DECIMALS, USDC_MINT, ownerAta, usd } from "@/lib/program";
 import { tokenBalance } from "@/lib/portfolio";
 
@@ -15,6 +15,7 @@ export default function Merchant() {
   const [label, setLabel] = useState("Café Solana · flat white");
   const [recipient, setRecipient] = useState(DEMO_MERCHANT);
   const [req, setReq] = useState<PayRequest | null>(null);
+  const [mode, setMode] = useState<"pay" | "checkout">("pay");
   const [qr, setQr] = useState<string>("");
   const [paid, setPaid] = useState<string | null>(null);
   const [balance, setBalance] = useState(0);
@@ -24,11 +25,16 @@ export default function Merchant() {
       const r: PayRequest = { recipient: new PublicKey(recipient), amount: parseFloat(amount), reference: Keypair.generate().publicKey, label };
       setReq(r);
       setPaid(null);
-      setQr(await QRCode.toDataURL(solanaPayUrl(window.location.origin, r), { margin: 1, width: 280, color: { dark: "#000000", light: "#ffffff" } }));
     } catch (e) {
       alert(String(e));
     }
   };
+
+  useEffect(() => {
+    if (!req) return;
+    const url = mode === "pay" ? solanaPayUrl(window.location.origin, req) : phantomBrowseUrl(window.location.origin, req);
+    QRCode.toDataURL(url, { margin: 1, width: 280, color: { dark: "#000000", light: "#ffffff" } }).then(setQr);
+  }, [req, mode]);
 
   useEffect(() => {
     if (!req || paid) return;
@@ -84,7 +90,20 @@ export default function Merchant() {
             <div className="space-y-3">
               {qr && <img src={qr} alt="Solana Pay QR" className="mx-auto rounded-xl" width={280} height={280} />}
               <div className="text-sm font-semibold">{usd(req.amount)} · {req.label}</div>
-              <div className="text-xs text-[var(--muted)]">Scan with Phantom, or</div>
+              <div className="flex justify-center gap-1 rounded-lg border border-[var(--border)] p-1 text-xs">
+                {(["pay", "checkout"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    className={`rounded-md px-3 py-1 ${mode === m ? "bg-[var(--accent2)] text-white" : "text-[var(--muted)] hover:text-[var(--text)]"}`}
+                  >
+                    {m === "pay" ? "One tap · Solana Pay" : "Choose collateral"}
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-[var(--muted)]">
+                {mode === "pay" ? "Scan with Phantom's scanner: borrow + pay in one approval, or" : "Scan with the phone camera: opens the checkout in Phantom, or"}
+              </div>
               <Link href={`/checkout?${payQuery(req)}`} className="inline-block rounded-lg border border-[var(--accent2)] px-4 py-2 text-sm hover:bg-[var(--accent2)]/20">
                 Pay from this device →
               </Link>

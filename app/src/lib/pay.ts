@@ -62,6 +62,14 @@ export function solanaPayUrl(origin: string, req: PayRequest) {
   return `solana:${encodeURIComponent(`${origin}/api/pay?${payQuery(req)}`)}`;
 }
 
+export function checkoutUrl(origin: string, req: PayRequest) {
+  return `${origin}/checkout?${payQuery(req)}`;
+}
+
+export function phantomBrowseUrl(origin: string, req: PayRequest) {
+  return `https://phantom.app/ul/browse/${encodeURIComponent(checkoutUrl(origin, req))}?ref=${encodeURIComponent(origin)}`;
+}
+
 export function planPayment(p: Portfolio, amount: number, preferred?: string): PayPlan {
   const shortfall = Math.max(0, +(amount - p.walletUsdc).toFixed(6));
   const borrows: PayPlan["borrows"] = [];
