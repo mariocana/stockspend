@@ -4,6 +4,11 @@
 
 Built for [Stocklana](https://hackathons.solana.com/hackathons/stocklana) (Sept 11–18, 2026).
 
+**Live demo (devnet):** https://stockspend-production.up.railway.app · **Video:** VIDEO_URL
+
+Try it: connect Phantom in testnet mode, use the in-app faucets for TSLAx/AAPLx, deposit,
+then open `/merchant` and pay the QR from your phone.
+
 Deposit tokenized stocks (xStocks) as collateral, borrow USDC against them, and pay
 anywhere with Solana Pay — in one transaction. Your shares stay yours: no sale, no
 taxable event, no lost upside.
